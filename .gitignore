@@ -1,0 +1,5 @@
+venv/
+build/
+.mypy_cache/
+DMSE.ini
+DMSE.log
