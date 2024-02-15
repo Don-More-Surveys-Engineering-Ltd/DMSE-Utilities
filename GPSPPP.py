@@ -174,7 +174,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
     working_string = working_string + "95% sigma:  " + ppp[3]
     while len(working_string) < 55:
         working_string = working_string + " "
-    working_string = working_string + "--> Easting:   " + "{0:.3f}".format(ppp[4])
+    working_string = working_string + "--> Easting:   " + "{0:.3f}".format(float(ppp[4]))
     output_str.append(working_string)
     working_string = "Longitude:  " + ppp[5] + "-" + ppp[6] + "-" + ppp[7]
     while len(working_string) < 33:
@@ -182,7 +182,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
     working_string = working_string + "95% sigma:  " + ppp[8]
     while len(working_string) < 55:
         working_string = working_string + " "
-    working_string = working_string + "--> Northing:  " + "{0:.3f}".format(ppp[9])
+    working_string = working_string + "--> Northing:  " + "{0:.3f}".format(float(ppp[9]))
     output_str.append(working_string)
     working_string = "Ortho Elev:        " + ppp[12]
     while len(working_string) < 33:
@@ -197,12 +197,12 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
     working_string = "Latitude:   " + ref[0]
     while len(working_string) < 55:
         working_string = working_string + " "
-    working_string = working_string + "--> Easting:  " + "{0:.3f}".format(ref[3])
+    working_string = working_string + "--> Easting:  " + "{0:.3f}".format(float(ref[3]))
     output_str.append(working_string)
     working_string = "Longitude: " + ref[1]
     while len(working_string) < 55:
         working_string = working_string + " "
-    working_string = working_string + "--> Northing: " + "{0:.3f}".format(ref[4])
+    working_string = working_string + "--> Northing: " + "{0:.3f}".format(float(ref[4]))
     output_str.append(working_string)
     working_string = "Ell Height: " + ref[2]
     output_str.append(working_string)
@@ -250,12 +250,12 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
         working_string = "Latitude:   " + loc[0]
         while len(working_string) < 55:
             working_string = working_string + " "
-        working_string = working_string + "--> Easting:  " + "{0:.3f}".format(loc[3])
+        working_string = working_string + "--> Easting:  " + "{0:.3f}".format(float(loc[3]))
         output_str.append(working_string)
         working_string = "Longitude: " + loc[1]
         while len(working_string) < 55:
             working_string = working_string + " "
-        working_string = working_string + "--> Northing: " + "{0:.3f}".format(loc[4])
+        working_string = working_string + "--> Northing: " + "{0:.3f}".format(float(loc[4]))
         output_str.append(working_string)
         working_string = "Ell Height: " + loc[2]
         output_str.append(working_string)

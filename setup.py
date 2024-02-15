@@ -16,5 +16,5 @@ executables = [cx_Freeze.Executable("dmse.py", base=base)]
 cx_Freeze.setup(
         name = "DMSE Utilities",
         options = {"build_exe":{"packages":["tkinter"],"include_files":["icon.ico", "C:\\Users\\jlong\\AppData\\Local\\Programs\\Python\\Python311\\DLLs\\tcl86t.dll", "C:\\Users\\jlong\\AppData\\Local\\Programs\\Python\\Python311\\DLLs\\tk86t.dll"]}},
-        version="0.01",
+        version="0.4",
         executables=executables) 

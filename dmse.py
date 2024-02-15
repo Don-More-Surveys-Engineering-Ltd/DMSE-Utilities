@@ -1,10 +1,11 @@
 import dataclasses
+import os
 from pathlib import Path
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-from typing import Callable, cast
+from typing import Callable, Optional, cast
 
 from GPSPPP import GPS_PPP_Calc
 from rw5_to_dat import ConvertOperation
@@ -348,10 +349,13 @@ class GPSPPPSection(ttk.Frame):
                 filetypes=(("LOC files", "*.loc"), ("all files", "*.*")),
             ))
         def choose_output_file(self):
-            self.form_data.output_file.set(filedialog.asksaveasfilename(
+            path = filedialog.asksaveasfilename(
                 title="Select file",
                 filetypes=(("TXT files", "*.txt"), ("all files", "*.*")),
-            ))
+            )
+            if path[path.rfind('/')+1:].find(".txt") == -1:
+                path += ".txt"
+            self.form_data.output_file.set(path)
             
     class ButtonsRow(ttk.Frame):
         def __init__(
@@ -460,17 +464,25 @@ class Rw5Section(ttk.Frame):
             ttk.Label(self, textvariable=self.form_data.output_file).grid(
                 row=4, column=0, columnspan=4, sticky=W
             )
-            
+
         def choose_input_file(self):
-            self.form_data.input_file.set(filedialog.askopenfilename(
+            input_path = filedialog.askopenfilename(
                 title="Select file",
                 filetypes=(("RW5 files", "*.rw5"), ("all files", "*.*")),
-            ))
-            
+            )
+            self.form_data.input_file.set(input_path)
+            output_path = input_path[:input_path.rfind('.')] + ".dat"
+            self.form_data.output_file.set(output_path)
+
         def choose_output_file(self):
+            input_filename: Optional[str] = None
+            if (input_path := self.form_data.input_file.get()):
+                _, input_filename = os.path.split(input_path)
+                input_filename = input_filename[:input_filename.rfind('.')] + ".dat"
             self.form_data.output_file.set(filedialog.asksaveasfilename(
                 title="Select file",
                 filetypes=(("TXT files", "*.txt"), ("all files", "*.*")),
+                initialfile=input_filename
             ))
 
     class ButtonsRow(ttk.Frame):
@@ -514,18 +526,22 @@ class Rw5Section(ttk.Frame):
             co.start()
             
             co.save()
+            
+            messagebox.showinfo('Success', f"""
+                Output saved to {self.form_data.output_file.get()}.
+            """)
         except Exception as err:
             retry = messagebox.askretrycancel('Whoops',f"""
                 There was an error when trying to save your results.\n
-                GPS_PPP_calc threw: {err}
+                rw5_to_dat threw: {err}
             """)
             
             if retry:
                 return self.on_compute()
+            else:
+                raise err
             
-        messagebox.showinfo('Success', f"""
-            Output saved to {self.form_data.output_file.get()}.
-        """)
+        
 
     def __init__(
         self, master: Misc | None, **kwargs

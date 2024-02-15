@@ -1,5 +1,5 @@
-# for dev
-from collections import defaultdict, namedtuple
+
+from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import cached_property, reduce
@@ -49,13 +49,17 @@ class Instruction:
 
     @cached_property
     def args(self):
-        return {
-            line.removeprefix("--").split(",", maxsplit=1)[0]: line.split(
-                ",", maxsplit=1
-            )[1]
-            for line in self.lines
-            if line.find(",") != -1
-        }
+        _args = {}
+        for line in self.lines:
+            _l = line.removeprefix("--")
+            if _l.find(":") != -1:
+                name, arg = _l.split(":", maxsplit=1)
+                _args[name] = arg
+            elif _l.find(",") != -1:
+                name, arg = _l.split(",", maxsplit=1)
+                _args[name] = arg
+        
+        return _args
 
     def __init__(self) -> None:
         self.lines = []
@@ -69,6 +73,9 @@ class Instruction:
             return default
 
         return line[line.find(prefix) + len(prefix) : line.find(",", line.find(prefix))]
+    
+    def __str__(self) -> str:
+        return f"{self.lines}"
 
 
 class ConvertOperation:
@@ -169,6 +176,7 @@ class ConvertOperation:
         for instruct in self.instructions:
             match instruct.op:
                 case "GPS":
+                    # Northing easting elevation will be on second line
                     self.coord_manifest[
                         instruct.get_param(instruct.lines[0], "PN")
                     ].readings.append(
@@ -187,10 +195,31 @@ class ConvertOperation:
                     self.sideshot_manifest[
                         instruct.get_param(instruct.lines[0], "PN")
                     ] += 1
+                case "SP" if not instruct.args.get("Resection"):
+                    # All params will be on same line
+                    self.coord_manifest[
+                        instruct.get_param(instruct.lines[0], "PN")
+                    ].readings.append(
+                        GPSReading(
+                            northing=Decimal(
+                                instruct.get_param(instruct.lines[0], "N ")
+                            ),
+                            easting=Decimal(
+                                instruct.get_param(instruct.lines[0], "E ")
+                            ),
+                            elevation=Decimal(
+                                instruct.get_param(instruct.lines[0], "EL")
+                            ),
+                        )
+                    )
+                    self.sideshot_manifest[
+                        instruct.get_param(instruct.lines[0], "PN")
+                    ] += 1
                 case "SS":
                     self.sideshot_manifest[
                         instruct.get_param(instruct.lines[0], "FP")
-                    ] += 1
+                    ] += 1  
+                    
 
     def second_pass(self):
         self.prelude_c()
@@ -201,8 +230,8 @@ class ConvertOperation:
                     self.jb(instruct)
                 case "LS":
                     self.ls(instruct)
-                case "SP":
-                    self.sp(instruct)
+                case "SP" if instruct.args.get('Resection') is not None:
+                    self.sp_resection(instruct)
                 case "BK":
                     self.bk(instruct)
                 case "SS":
@@ -228,11 +257,13 @@ class ConvertOperation:
         if rod_height:
             self.state.rod_height = Decimal(rod_height)
 
-    def sp(self, instruct: Instruction):
+    def sp_resection(self, instruct: Instruction):
+        print(instruct)
         assert (
             self.state.instrument_height is not None
             and self.state.rod_height is not None
-        ), "Invalid state"
+        ), f"Invalid state {self.state.instrument_height=} {self.state.rod_height=}"
+        
 
         resection_name = instruct.get_param(instruct.lines[0], "PN")
 
@@ -250,7 +281,7 @@ class ConvertOperation:
                 sd = instruct.get_param(line, "SD")
                 sd = sd[: sd.find("--")]
                 self.output.append(
-                    f"DM "
+                    "DM "
                     + f"{point_name}".ljust(15)
                     + f"{ar}".rjust(15)
                     + f"{sd}".rjust(12)
@@ -282,7 +313,7 @@ class ConvertOperation:
             and self.state.backsight_angle is not None
             and self.state.instrument_height is not None
             and self.state.rod_height is not None
-        ), "Invalid state."
+        ), f"Invalid state. {self.state.backsight_coord=} {self.state.backsight_angle} {self.state.instrument_height} {self.state.rod_height}"
         at = instruct.get_param(instruct.lines[0], "OP")
         from_point = self.state.backsight_coord
         to_point = instruct.get_param(instruct.lines[0], "FP")
