@@ -299,14 +299,6 @@ class ConvertOperation:
             instruct.get_param(instruct.lines[0], "BS")
         )
 
-        self.output.extend(
-            [
-                "",
-                f"DBG {self.state.backsight_coord=} {self.state.backsight_angle=}",
-                f"    {instruct.lines[0]}",
-            ]
-        )
-
     def ss(self, instruct: Instruction):
         assert (
             self.state.backsight_coord is not None
@@ -333,7 +325,7 @@ class ConvertOperation:
             diff = self.subtract_DMS(dms, self.state.backsight_angle)
             print(f"{ar=} {dms=} {diff=}")
             angle = self.str_to_DMS_str(
-                f"{diff[0]}.{str(diff[1]).zfill(2)}{str(diff[2]).replace('.', '').zfill(2)}"
+                f"{diff[0]}.{str(diff[1]).zfill(2)}{str(diff[2]).strip('0').replace('.', '').zfill(2)}"
             )
 
             self.output.append(

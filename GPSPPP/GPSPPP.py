@@ -1,10 +1,12 @@
-import coordinates
+from .coordinates import geocentric2grid, dms2ddd, ddd2dms
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) -> None:
+def GPS_PPP_Calc(
+    ref_file: str, sum_file: str, loc_file: str, out_file_name: str
+) -> None:
     project = "never found project name"
 
     logger.debug("Opening Ref file and reading into lines_ref")
@@ -13,7 +15,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
     input_file.close
     logger.debug("lines_ref=")
     logger.debug(lines_ref)
-    ref = coordinates.geocentric2grid(float(lines_ref[1]), float(lines_ref[2]))
+    ref = geocentric2grid(float(lines_ref[1]), float(lines_ref[2]))
     ref = lines_ref[1], lines_ref[2], lines_ref[3], str(ref[0]), str(ref[1])
     logger.debug("ref = ")
     logger.debug(ref)
@@ -74,9 +76,9 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
         l3 = l3.replace("  ", " ")
         l3 = l3.replace("  ", " ")
         l3 = l3.split(" ")
-        x = coordinates.dms2ddd(float(l1[3]), float(l1[4]), float(l1[5]))
-        y = coordinates.dms2ddd(float(l2[3]), float(l2[4]), float(l2[5]))
-        xy = coordinates.geocentric2grid(float(x), float(y))
+        x = dms2ddd(float(l1[3]), float(l1[4]), float(l1[5]))
+        y = dms2ddd(float(l2[3]), float(l2[4]), float(l2[5]))
+        xy = geocentric2grid(float(x), float(y))
         ppp = [
             l1[3],
             l1[4],
@@ -109,7 +111,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
                 if lines_ppp[i].split(" ")[1] == "LAT":
                     # get Lat data and add to ppp array
                     lat = lines_ppp[i][46:64].strip().split()
-                    x = coordinates.dms2ddd(float(lat[0]), float(lat[1]), float(lat[2]))
+                    x = dms2ddd(float(lat[0]), float(lat[1]), float(lat[2]))
                     ppp[0] = lat[0]
                     ppp[1] = lat[1]
                     ppp[2] = lat[2]
@@ -117,7 +119,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
                 if lines_ppp[i].split(" ")[1] == "LON":
                     # get Long data and add to ppp array
                     lon = lines_ppp[i][46:64].strip().split()
-                    y = coordinates.dms2ddd(float(lon[0]), float(lon[1]), float(lon[2]))
+                    y = dms2ddd(float(lon[0]), float(lon[1]), float(lon[2]))
                     ppp[5] = lon[0]
                     ppp[6] = lon[1]
                     ppp[7] = lon[2]
@@ -143,7 +145,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
             i += 1
         # have now gone through file - assume x and y contain the geocentric values
         # convert to grid
-        xy = coordinates.geocentric2grid(float(x), float(y))
+        xy = geocentric2grid(float(x), float(y))
         # add east and north to ppp array
         ppp[4] = str(xy[0])
         ppp[9] = str(xy[1])
@@ -174,7 +176,9 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
     working_string = working_string + "95% sigma:  " + ppp[3]
     while len(working_string) < 55:
         working_string = working_string + " "
-    working_string = working_string + "--> Easting:   " + "{0:.3f}".format(float(ppp[4]))
+    working_string = (
+        working_string + "--> Easting:   " + "{0:.3f}".format(float(ppp[4]))
+    )
     output_str.append(working_string)
     working_string = "Longitude:  " + ppp[5] + "-" + ppp[6] + "-" + ppp[7]
     while len(working_string) < 33:
@@ -182,7 +186,9 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
     working_string = working_string + "95% sigma:  " + ppp[8]
     while len(working_string) < 55:
         working_string = working_string + " "
-    working_string = working_string + "--> Northing:  " + "{0:.3f}".format(float(ppp[9]))
+    working_string = (
+        working_string + "--> Northing:  " + "{0:.3f}".format(float(ppp[9]))
+    )
     output_str.append(working_string)
     working_string = "Ortho Elev:        " + ppp[12]
     while len(working_string) < 33:
@@ -235,7 +241,7 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
         g = lines_loc[11]
         g = g.split('"')
         g = g[3]
-        loc = coordinates.geocentric2grid(float(a), float(b))
+        loc = geocentric2grid(float(a), float(b))
         loc = a, b, c, loc[0], loc[1], d, e, f, g
         loc = list(map(str, loc))
         # loc now holds data in format:
@@ -250,12 +256,16 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
         working_string = "Latitude:   " + loc[0]
         while len(working_string) < 55:
             working_string = working_string + " "
-        working_string = working_string + "--> Easting:  " + "{0:.3f}".format(float(loc[3]))
+        working_string = (
+            working_string + "--> Easting:  " + "{0:.3f}".format(float(loc[3]))
+        )
         output_str.append(working_string)
         working_string = "Longitude: " + loc[1]
         while len(working_string) < 55:
             working_string = working_string + " "
-        working_string = working_string + "--> Northing: " + "{0:.3f}".format(float(loc[4]))
+        working_string = (
+            working_string + "--> Northing: " + "{0:.3f}".format(float(loc[4]))
+        )
         output_str.append(working_string)
         working_string = "Ell Height: " + loc[2]
         output_str.append(working_string)
@@ -278,12 +288,16 @@ def GPS_PPP_Calc(ref_file:str, sum_file:str, loc_file:str, out_file_name:str) ->
         # write Shift from ADJ-2-HPN
         output_str.append("Shift from ADJ-2-HPN")
         str1 = "Easting:    "
-        str2 = "{0:.3f}".format(float(loc[3]) - float(loc[6]) + (float(ppp[4]) - float(ref[3])))
+        str2 = "{0:.3f}".format(
+            float(loc[3]) - float(loc[6]) + (float(ppp[4]) - float(ref[3]))
+        )
         while len(str1) + len(str2) < 20:
             str1 = str1 + " "
         output_str.append(str1 + str2)
         str1 = "Northing:   "
-        str2 = "{0:.3f}".format(float(loc[4]) - float(loc[7]) + (float(ppp[9]) - float(ref[4])))
+        str2 = "{0:.3f}".format(
+            float(loc[4]) - float(loc[7]) + (float(ppp[9]) - float(ref[4]))
+        )
         while len(str1) + len(str2) < 20:
             str1 = str1 + " "
         output_str.append(str1 + str2)
