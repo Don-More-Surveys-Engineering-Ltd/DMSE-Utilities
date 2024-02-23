@@ -21,7 +21,7 @@ include_files = [
     "C:\\Users\\jlong\\AppData\\Local\\Programs\\Python\\Python311\\DLLs\\tk86t.dll",
     "helpers/las2txt.exe",
 ]
-packages = ["tkinter"]
+packages = ["tkinter", "numpy"]
 executables = [cx_Freeze.Executable("app.py", base=base)]
 
 cx_Freeze.setup(

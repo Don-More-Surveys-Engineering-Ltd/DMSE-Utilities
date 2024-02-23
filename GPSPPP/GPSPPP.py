@@ -1,4 +1,4 @@
-from .coordinates import geocentric2grid, dms2ddd, ddd2dms
+from .coordinates import geocentric2grid, dms2ddd
 import logging
 
 logger = logging.getLogger(__name__)

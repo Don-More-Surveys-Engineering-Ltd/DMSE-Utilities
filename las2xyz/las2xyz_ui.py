@@ -5,7 +5,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
-from typing import Callable, Optional
 
 from .las2xyz import Las2XYZOperation
 
