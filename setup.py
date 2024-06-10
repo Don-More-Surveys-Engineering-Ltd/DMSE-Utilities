@@ -1,5 +1,6 @@
-import sys  # Imports are automatically detected (normally) in the script to freeze
 import os
+import sys  # Imports are automatically detected (normally) in the script to freeze
+
 import cx_Freeze
 
 base = None
@@ -22,11 +23,18 @@ include_files = [
     "helpers/las2txt.exe",
 ]
 packages = ["tkinter", "numpy"]
-executables = [cx_Freeze.Executable("app.py", base=base)]
+executables = [
+    cx_Freeze.Executable(
+        "app.py",
+        base=base,
+        target_name="DMSE Utils.exe",
+        icon="icon.ico",
+    ),
+]
 
 cx_Freeze.setup(
     name="DMSE Utilities",
     options={"build_exe": {"packages": packages, "include_files": include_files}},
-    version="0.5",
+    version="0.6",
     executables=executables,
 )

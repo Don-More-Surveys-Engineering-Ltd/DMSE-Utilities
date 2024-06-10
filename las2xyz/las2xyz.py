@@ -1,14 +1,21 @@
-import os
-from pathlib import Path
+from __future__ import annotations
+
+import logging
 import shutil
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 from typing import Any, Callable, cast
+
 import laspy
+
+logger = logging.getLogger(__name__)
 
 
 class Las2XYZOperation:
+    """LAS2XYZ converts las data to XYZ data."""
+
     tile_list: list[tuple[float, float]]
     output_tile_filenames: list[str]
 
@@ -24,8 +31,8 @@ class Las2XYZOperation:
 
     parallel_count: int
 
-    def __init__(self) -> None:
-        self.working_path = Path(os.getcwd())
+    def __init__(self) -> None:  # noqa: D107
+        self.working_path = Path.cwd()
         self.output_tile_filenames = []
         self.parallel_count = 15
         self.min_x, self.min_y, self.max_x, self.max_y = None, None, None, None
@@ -33,7 +40,8 @@ class Las2XYZOperation:
         self.output_dir_path = None
         self.tile_size = None
 
-    def init_data(self):
+    def init_data(self) -> None:
+        """Initialize data from las files."""
         if self.input_path:
             self.min_x, self.min_y, _, self.max_x, self.max_y, _ = self.get_extent()
 
@@ -60,43 +68,52 @@ class Las2XYZOperation:
         progress_callback: Callable[[str], Any],
         complete_callback: Callable[[Path], Any],
     ):
+        """Begin operation."""
         if not self.input_path or not self.output_dir_path or not self.tile_size:
             return False
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            print(temp_dir)
-            l = len(self.tile_list)
+            num_tiles = len(self.tile_list)
             n = self.parallel_count
-            for index in range(0, l, n):
+            for index in range(0, num_tiles, n):
 
-                def create_process(tile, temp_dir):
-                    print(tile)
+                def create_process(tile, temp_dir) -> list[str]:
+                    """Spawn las2txt process.
+
+                    Return command used.
+                    """
                     cmd, tile_file_name = self.build_las2txt_cmd_for_tile(
-                        tile, Path(temp_dir)
+                        tile,
+                        Path(temp_dir),
                     )
+                    logger.info(f"Spawning process from {cmd=}.")
                     progress_callback(str(tile_file_name))
                     return cmd
 
                 processes = [
                     subprocess.Popen(create_process(tile, temp_dir))
-                    for tile in self.tile_list[index : min(index + n, l)]
+                    for tile in self.tile_list[index : min(index + n, num_tiles)]
                 ]
 
                 for p in processes:
+                    logger.info(f"Waiting for process {p}")
                     p.wait()
 
+            logger.info("Creating archive of output files.")
             out = shutil.make_archive(
                 str(self.output_dir_path / f"{self.input_path.stem}_tiles"),
                 "zip",
                 Path(temp_dir).parent,
-                os.path.basename(temp_dir),
+                Path(temp_dir).name,
             )
+            logger.info(f"Archive created at {out}")
 
             complete_callback(Path(out))
 
         return True
 
     def get_extent(self):
+        """Get extents from las file header."""
         las_file_reader = laspy.open(self.input_path)
         file_header = las_file_reader.header
 
@@ -105,13 +122,16 @@ class Las2XYZOperation:
             *file_header.min,
             *file_header.max,
         )  # extent: [min_x, min_y, min_z, max_x, max_y, max_z]
-
+        logger.info(f"Got extent {extent=}")
         return cast(tuple[float, float, float, float, float, float], extent)
 
     def build_tile_list(self):
-        assert (
-            self.min_x and self.min_y and self.max_x and self.max_y and self.tile_size
-        )
+        """Build a list of tiles with size "tile_size" from within the file extent."""
+        assert self.min_x  # noqa: S101
+        assert self.min_y  # noqa: S101
+        assert self.max_x  # noqa: S101
+        assert self.max_y  # noqa: S101
+        assert self.tile_size  # noqa: S101
         tile_list: list[tuple[float, float]] = []
 
         # round down to nearest increment of tile size
@@ -131,11 +151,15 @@ class Las2XYZOperation:
         return tile_list
 
     def build_las2txt_cmd_for_tile(
-        self, tile: tuple[float, float], destination_folder: Path
+        self,
+        tile: tuple[float, float],
+        destination_folder: Path,
     ):
-        assert self.input_path and self.tile_size
+        """Create command for las2txt.exe."""
+        assert self.input_path  # noqa: S101
+        assert self.tile_size  # noqa: S101
         tile_file_name = Path(
-            f"{self.input_path.stem}-{int(tile[0])}_{int(tile[1])}.XYZ"
+            f"{self.input_path.stem}-{int(tile[0])}_{int(tile[1])}.XYZ",
         )
 
         self.output_tile_filenames.append(tile_file_name.name)

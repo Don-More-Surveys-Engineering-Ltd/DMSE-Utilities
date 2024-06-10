@@ -1,11 +1,12 @@
 import dataclasses
+import logging
 from tkinter import *
-from tkinter import ttk
-from tkinter import filedialog
-from tkinter import messagebox
+from tkinter import filedialog, messagebox, ttk
 from typing import Callable
 
 from .GPSPPP import GPS_PPP_Calc
+
+logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass
@@ -14,87 +15,134 @@ class GPSPPPFormData:
     LOC_file: StringVar = dataclasses.field(default_factory=lambda: StringVar(value=""))
     REF_file: StringVar = dataclasses.field(default_factory=lambda: StringVar(value=""))
     output_file: StringVar = dataclasses.field(
-        default_factory=lambda: StringVar(value="")
+        default_factory=lambda: StringVar(value=""),
     )
 
 
 class GPSPPPSection(ttk.Frame):
-    """
-    GPSPPP Processing
-    """
+    """GPSPPP Processing"""
 
     class PathSelectSection(ttk.Frame):
         def __init__(
-            self, master: Misc | None, form_data: GPSPPPFormData, **kwargs
+            self,
+            master: Misc | None,
+            form_data: GPSPPPFormData,
+            **kwargs,
         ) -> None:
             super().__init__(master, **kwargs)
             self.form_data = form_data
 
             ttk.Label(self, text="Included Files", style="H1.TLabel").grid(
-                row=0, column=0, columnspan=4, sticky=W, pady=5
+                row=0,
+                column=0,
+                columnspan=4,
+                sticky=W,
+                pady=5,
             )
             ttk.Label(self, text="REF file", style="H2.TLabel").grid(
-                row=1, column=0, columnspan=2, sticky=W
+                row=1,
+                column=0,
+                columnspan=2,
+                sticky=W,
             )
             ttk.Button(self, text="Choose file", command=self.choose_ref_file).grid(
-                row=1, column=2, padx=5, sticky=W
+                row=1,
+                column=2,
+                padx=5,
+                sticky=W,
             )
             ttk.Label(self, textvariable=self.form_data.REF_file).grid(
-                row=2, column=0, columnspan=4, sticky=W
+                row=2,
+                column=0,
+                columnspan=4,
+                sticky=W,
             )
             ttk.Label(self, text="SUM file", style="H2.TLabel").grid(
-                row=3, column=0, columnspan=2, sticky=W
+                row=3,
+                column=0,
+                columnspan=2,
+                sticky=W,
             )
             ttk.Button(self, text="Choose file", command=self.choose_sum_file).grid(
-                row=3, column=2, padx=5, sticky=W
+                row=3,
+                column=2,
+                padx=5,
+                sticky=W,
             )
             ttk.Label(self, textvariable=self.form_data.SUM_file).grid(
-                row=4, column=0, columnspan=4, sticky=W
+                row=4,
+                column=0,
+                columnspan=4,
+                sticky=W,
             )
             ttk.Label(self, text="LOC file (Optional)", style="H2.TLabel").grid(
-                row=5, column=0, columnspan=2, sticky=W
+                row=5,
+                column=0,
+                columnspan=2,
+                sticky=W,
             )
             ttk.Button(self, text="Choose file", command=self.choose_loc_file).grid(
-                row=5, column=2, padx=5, sticky=W
+                row=5,
+                column=2,
+                padx=5,
+                sticky=W,
             )
             ttk.Label(self, textvariable=self.form_data.LOC_file).grid(
-                row=6, column=0, columnspan=4, sticky=W
+                row=6,
+                column=0,
+                columnspan=4,
+                sticky=W,
             )
             ttk.Label(self, text="Output file", style="H2.TLabel").grid(
-                row=7, column=0, columnspan=2, sticky=W
+                row=7,
+                column=0,
+                columnspan=2,
+                sticky=W,
             )
             ttk.Button(
-                self, text="Choose save file", command=self.choose_output_file
+                self,
+                text="Choose save file",
+                command=self.choose_output_file,
             ).grid(row=7, column=2, padx=5, sticky=W)
             ttk.Label(self, textvariable=self.form_data.output_file).grid(
-                row=8, column=0, columnspan=4, sticky=W
+                row=8,
+                column=0,
+                columnspan=4,
+                sticky=W,
             )
 
         def choose_sum_file(self):
+            logger.info("Choosing SUM file.")
             self.form_data.SUM_file.set(
                 filedialog.askopenfilename(
                     title="Select file",
                     filetypes=(("SUM files", "*.sum"), ("all files", "*.*")),
-                )
+                ),
             )
+            logger.info(f"Chose SUM file {self.form_data.SUM_file.get()}")
 
         def choose_ref_file(self):
+            logger.info("Choosing REF file.")
             self.form_data.REF_file.set(
                 filedialog.askopenfilename(
                     title="Select file",
                     filetypes=(("REF files", "*.ref"), ("all files", "*.*")),
-                )
+                ),
             )
+            logger.info(f"Chose REF file {self.form_data.REF_file.get()}")
 
         def choose_loc_file(self):
+            logger.info("Choosing LOC file.")
             self.form_data.LOC_file.set(
                 filedialog.askopenfilename(
                     title="Select file",
                     filetypes=(("LOC files", "*.loc"), ("all files", "*.*")),
-                )
+                ),
             )
+            logger.info(f"Chose LOC file {self.form_data.LOC_file.get()}")
 
         def choose_output_file(self):
+            logger.info("Choosing output file.")
             path = filedialog.asksaveasfilename(
                 title="Select file",
                 filetypes=(("TXT files", "*.txt"), ("all files", "*.*")),
@@ -102,6 +150,7 @@ class GPSPPPSection(ttk.Frame):
             if path[path.rfind("/") + 1 :].find(".txt") == -1:
                 path += ".txt"
             self.form_data.output_file.set(path)
+            logger.info(f"Chose output file {self.form_data.output_file.get()}")
 
     class ButtonsRow(ttk.Frame):
         def __init__(
@@ -114,11 +163,15 @@ class GPSPPPSection(ttk.Frame):
             super().__init__(master, **kwargs)
 
             self.compute_button = ttk.Button(
-                self, text="Compute", command=on_compute, state="disabled"
+                self,
+                text="Compute",
+                command=on_compute,
+                state="disabled",
             )
             self.compute_button.pack(side=RIGHT)
             ttk.Button(self, text="Reset", style="Red.TButton", command=on_reset).pack(
-                side=RIGHT, padx=5
+                side=RIGHT,
+                padx=5,
             )
 
     def __init__(self, master: Misc | None, **kwargs) -> None:
@@ -130,7 +183,10 @@ class GPSPPPSection(ttk.Frame):
         self.form_data.output_file.trace("w", self.on_validate_form)
 
         self.PathSelectSection(self, self.form_data).pack(
-            fill=X, pady=5, padx=10, expand=False
+            fill=X,
+            pady=5,
+            padx=10,
+            expand=False,
         )
         ttk.Separator(self, orient="horizontal").pack(fill=X, pady=5)
 
@@ -148,12 +204,14 @@ class GPSPPPSection(ttk.Frame):
             self.buttons_row.compute_button["state"] = "normal"
 
     def on_reset(self) -> None:
+        logger.info("Reset form.")
         self.form_data.REF_file.set("")
         self.form_data.SUM_file.set("")
         self.form_data.LOC_file.set("")
         self.form_data.output_file.set("")
 
     def on_compute(self) -> None:
+        logger.info("Compute: start.")
         try:
             GPS_PPP_Calc(
                 self.form_data.REF_file.get(),
@@ -161,6 +219,7 @@ class GPSPPPSection(ttk.Frame):
                 self.form_data.LOC_file.get(),
                 self.form_data.output_file.get(),
             )
+            logger.info("Compute: finished."),
         except Exception as err:
             retry = messagebox.askretrycancel(
                 "Whoops",
@@ -169,6 +228,7 @@ class GPSPPPSection(ttk.Frame):
                 GPS_PPP_calc threw: {err}
             """,
             )
+            logger.exception("Compute: failed.")
 
             if retry:
                 return self.on_compute()
