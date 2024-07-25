@@ -1,9 +1,11 @@
+from pathlib import Path
 from tkinter import *
 from tkinter import ttk
+
 from GPSPPP.GPSPPP_ui import GPSPPPSection
+from las2xyz.las2xyz_ui import Las2XYZSection
 from LiDARCrop.lidar_crop_ui import LiDARCropSection
 from RW5.rw5_ui import Rw5Section
-from las2xyz.las2xyz_ui import Las2XYZSection
 
 LIDAR_SECTION_LABEL = "LiDAR"
 GPSPPP_SECTION_LABEL = "GPS PPP"
@@ -12,9 +14,7 @@ LAS2XYZ_SECTION_LABEL = "Las to XYZ"
 
 
 class App(Tk):
-    """
-    Main App
-    """
+    """Main App"""
 
     sections: dict[str, ttk.Frame]
 
@@ -62,7 +62,7 @@ class App(Tk):
 
         self.title("DMSE Utilities")
         self.minsize(520, 300)
-        self.iconbitmap("icon.ico")
+        self.iconbitmap(str(Path(__file__).parent / "icon.ico"))
 
         for label, section in self.sections.items():
             self.notebook.add(section, text=label)

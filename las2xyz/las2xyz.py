@@ -165,7 +165,7 @@ class Las2XYZOperation:
         self.output_tile_filenames.append(tile_file_name.name)
 
         cmd = [
-            "helpers/las2txt.exe",
+            str(Path(sys._MEIPASS) / "helpers" / "las2txt.exe"),  # noqa: SLF001
             *("-i", str(self.input_path)),
             *("keep_class", "2", "8"),
             *("-o", str(destination_folder / tile_file_name)),
